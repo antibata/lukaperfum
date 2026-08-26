@@ -1,11 +1,10 @@
-# Lukaperfum V3 — Next.js
+# Lukaperfum V7 — Next.js
 
 Catálogo mobile-first de perfumes y decants desarrollado con **Next.js App Router + React**.
 
 ## Ejecutar
 
 ```bash
-cd "/c/Users/usuario/OneDrive/Escritorio/pagina Luka/lukaperfum-next"
 npm install
 npm run dev
 ```
@@ -14,10 +13,8 @@ Abrí `http://localhost:3000`.
 
 ## Navegación por páginas
 
-La tienda ya no concentra todo en una sola página. Las secciones principales tienen su propia URL:
-
 - `/` — inicio
-- `/catalogo` — buscador, filtros, comparación y pedido
+- `/catalogo` — buscador, filtros, comparación y compra directa por WhatsApp
 - `/combos` — constructor de combos
 - `/asesor` — recomendador de fragancias
 - `/como-comprar` — explicación del proceso
@@ -25,32 +22,28 @@ La tienda ya no concentra todo en una sola página. Las secciones principales ti
 
 En celular aparece una barra inferior fija con Inicio, Catálogo, Combos, Asesor y Cómo comprar.
 
-## Cambios de esta versión
+## Flujo de compra
 
-- Se eliminó por completo la sección de reseñas.
-- Se retiró el panel `/admin`; el catálogo se edita manualmente desde `data/products.js`.
-- Se agregó un botón flotante real de WhatsApp con su ícono.
-- El pedido quedó como un botón flotante separado, con contador de productos.
-- Se mejoró la jerarquía mobile para evitar una página inicial demasiado larga.
-- Se agregó la categoría **Unisex** y se revisaron productos que estaban clasificados como Hombre/Mujer.
-- Los combos ya no aparecen mezclados en el catálogo principal.
-- Se mantuvieron comparación, selector 5/10 ml, vista rápida, zoom, ficha individual, buscador, filtros, ordenamiento y pedido múltiple por WhatsApp.
+No hay carrito ni “Agregar consulta”. En cada perfume se elige la presentación y se continúa directamente a WhatsApp con el producto, tamaño y precio incluidos en el mensaje.
 
-## Clasificación por género
+Los combos se mantienen separados porque allí sí tiene sentido seleccionar varias fragancias antes de consultar.
 
-El catálogo usa `Hombre`, `Mujer` y `Unisex`. La clasificación se refiere a cómo se comercializa la fragancia; cualquier persona puede usar la que prefiera.
+## Clasificación final del catálogo
 
-Se corrigieron a **Unisex**:
+El catálogo usa `Hombre`, `Mujer` y `Unisex`, según las correcciones indicadas para esta tienda.
 
-- Oud for Glory — Lattafa
-- Attar Al Wesal Gold — Al Wataniah
-- Khamrah — Lattafa
-- Club de Nuit Untold — Armaf
-- Club de Nuit Sillage — Armaf
-- Amber Oud Gold Edition — Al Haramain
-- Club de Nuit Precieux I — Armaf
-- Xerjoff Erba Pura — Xerjoff
-- Vulcan Feu — French Avenue
+Correcciones aplicadas en esta versión:
+
+- Oud for Glory — Hombre
+- Attar Al Wesal Gold — Hombre
+- Khamrah — Hombre
+- Club de Nuit Untold — Mujer
+- Club de Nuit Sillage — Hombre
+- Amber Oud Gold Edition — Hombre
+- His Confession — Unisex
+- Club de Nuit Precieux I — Hombre
+- Xerjoff Erba Pura — Hombre
+- Vulcan Feu — Hombre
 
 ## Editar perfumes a mano
 
@@ -66,22 +59,28 @@ Para agregar uno nuevo, copiá una entrada existente, cambiá sus datos y coloc�
 public/images/
 ```
 
+## Publicar cambios en GitHub
+
+Dentro del repositorio:
+
+```bash
+git add .
+git commit -m "Actualizar Lukaperfum"
+git push
+```
+
+Si Vercel está conectado al repositorio, el nuevo despliegue se inicia automáticamente.
+
 ## SEO y dominio
 
-Cuando publiques la web, copiá `.env.example` a `.env.local` y configurá:
+Copiá `.env.example` a `.env.local` y configurá:
 
 ```bash
 NEXT_PUBLIC_SITE_URL=https://tu-dominio.com
 ```
 
-Luego comprobá el proyecto con:
+Antes de publicar, comprobá:
 
 ```bash
 npm run build
 ```
-
-- El indicador/panel visual de desarrollo de Next.js está desactivado con `devIndicators: false` para que no tape la interfaz durante las pruebas locales.
-
-## Flujo de compra
-
-La tienda usa un flujo directo: el cliente elige la presentación y toca **Pedir por WhatsApp**. Se eliminó la lista “Mi pedido” / “Agregar consulta” para simplificar la experiencia móvil.
