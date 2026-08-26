@@ -84,3 +84,8 @@ Antes de publicar, comprobá:
 ```bash
 npm run build
 ```
+
+## V8 - Fotos corregidas
+- Se eliminó de las 35 fotos la franja negra inferior que venía incorporada en los screenshots originales.
+- Se ajustaron las relaciones de aspecto principales a 3:4 para respetar mejor el encuadre de las fotos, especialmente en celular.
+- La vista rápida usa `object-fit: contain` para mostrar la fotografía completa.
