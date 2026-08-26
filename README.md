@@ -82,12 +82,6 @@ npm run build
 
 - El indicador/panel visual de desarrollo de Next.js está desactivado con `devIndicators: false` para que no tape la interfaz durante las pruebas locales.
 
-## Seguridad / Vercel
+## Flujo de compra
 
-Dependencias actualizadas para los parches de seguridad de React Server Components (agosto de 2026):
-
-- Next.js 15.5.24
-- React 19.1.8
-- React DOM 19.1.8
-
-Después de reemplazar una versión anterior, borrar `node_modules` y `.next`, ejecutar `npm install` y volver a desplegar.
+La tienda usa un flujo directo: el cliente elige la presentación y toca **Pedir por WhatsApp**. Se eliminó la lista “Mi pedido” / “Agregar consulta” para simplificar la experiencia móvil.

@@ -12,7 +12,7 @@ export const metadata = {
   keywords: ["perfumes", "decants", "perfumes originales", "Lukaperfum", "fragancias"],
   openGraph: {
     title: "Lukaperfum | Perfumes originales y decants",
-    description: "Explorá perfumes originales y prepará tu pedido de decants para enviarlo por WhatsApp.",
+    description: "Explorá perfumes originales y elegí tu decant y consultá directamente por WhatsApp.",
     type: "website",
     images: [{ url: "/images/logo-lukaperfum.png", alt: "Lukaperfum" }],
   },

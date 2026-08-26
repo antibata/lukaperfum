@@ -6,7 +6,6 @@ import { BRANDS, PROFILES } from "../../data/products";
 
 const WHATSAPP = "5491176467131";
 const INSTAGRAM = "https://www.instagram.com/luka_perfum/";
-const CART_KEY = "lukaperfum:cart";
 
 const POLICIES = {
   privacy: {
@@ -52,19 +51,7 @@ function money(value) {
   return `$${Number(value).toLocaleString("es-AR")}`;
 }
 
-function readStorage(key, fallback) {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const parsed = JSON.parse(localStorage.getItem(key) || "null");
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
 
-function Icon({ children, label }) {
-  return <span className="icon" aria-label={label} aria-hidden={!label}>{children}</span>;
-}
 
 function VariantPicker({ product, selected, onChange, compact = false }) {
   return (
@@ -85,7 +72,7 @@ function VariantPicker({ product, selected, onChange, compact = false }) {
   );
 }
 
-function ProductCard({ product, onQuickView, onAdd, compareSelected, onCompare }) {
+function ProductCard({ product, onQuickView, compareSelected, onCompare }) {
   const [selectedSize, setSelectedSize] = useState(product.variants[0]?.size || "");
   const selectedVariant = product.variants.find((variant) => variant.size === selectedSize) || product.variants[0];
   const directMessage = `Hola! Quiero consultar por ${product.name} (${product.brand}), presentación ${selectedVariant?.size || "a definir"}${selectedVariant?.price && selectedVariant.price !== "Consultar" ? ` a ${selectedVariant.price}` : ""}.`;
@@ -109,8 +96,9 @@ function ProductCard({ product, onQuickView, onAdd, compareSelected, onCompare }
         <div className="profile-chips" aria-label="Perfil aromático orientativo">{product.profiles.map((profile) => <span key={profile}>{profile}</span>)}</div>
         <VariantPicker product={product} selected={selectedSize} onChange={setSelectedSize} compact />
         <div className="card-actions">
-          <button type="button" className="button" disabled={product.availability === "Sin stock"} onClick={() => onAdd(product, selectedVariant)}>{product.availability === "Sin stock" ? "Sin stock" : "Agregar consulta"}</button>
-          <a className="button button--ghost button--small" href={whatsappUrl(directMessage)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          {product.availability === "Sin stock"
+            ? <button type="button" className="button" disabled>Sin stock</button>
+            : <a className="button" href={whatsappUrl(directMessage)} target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>}
         </div>
         <div className="card-secondary-actions">
           <button type="button" onClick={() => onQuickView(product)}>Vista rápida</button>
@@ -122,7 +110,7 @@ function ProductCard({ product, onQuickView, onAdd, compareSelected, onCompare }
   );
 }
 
-function ProductModal({ product, onClose, onAdd }) {
+function ProductModal({ product, onClose }) {
   const [selectedSize, setSelectedSize] = useState(product?.variants[0]?.size || "");
   const [zoom, setZoom] = useState(false);
 
@@ -156,8 +144,9 @@ function ProductModal({ product, onClose, onAdd }) {
             <div className="detail-row"><strong>Stock</strong><p>{product.availability}</p></div>
             <VariantPicker product={product} selected={selectedSize} onChange={setSelectedSize} />
             <div className="modal-actions">
-              <button className="button" type="button" disabled={product.availability === "Sin stock"} onClick={() => onAdd(product, selectedVariant)}>{product.availability === "Sin stock" ? "Sin stock" : "Agregar a mi pedido"}</button>
-              <a className="button button--ghost" href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer">Consultar por WhatsApp</a>
+              {product.availability === "Sin stock"
+                ? <button className="button" type="button" disabled>Sin stock</button>
+                : <a className="button" href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer">Pedir por WhatsApp</a>}
             </div>
             <div className="modal-links">
               {product.custom ? <span>Producto agregado localmente</span> : <Link href={`/perfumes/${product.slug}`}>Abrir ficha completa →</Link>}
@@ -165,48 +154,6 @@ function ProductModal({ product, onClose, onAdd }) {
           </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-function CartDrawer({ cart, productsBySlug, onClose, onRemove, onQty, onClear }) {
-  const lines = cart.map((item) => {
-    const product = productsBySlug[item.slug];
-    const currentPrice = product?.variants?.find((variant) => variant.size === item.size)?.price || item.price;
-    const unit = priceToNumber(currentPrice);
-    return { ...item, price: currentPrice, product, unit, subtotal: unit === null ? null : unit * item.qty };
-  });
-  const knownTotal = lines.reduce((sum, item) => sum + (item.subtotal || 0), 0);
-  const hasUnknown = lines.some((item) => item.subtotal === null);
-  const message = [
-    "Hola! Quiero consultar este pedido en Lukaperfum:",
-    "",
-    ...lines.map((item) => `• ${item.product?.name || item.slug} — ${item.size} — ${item.price} × ${item.qty}${item.subtotal !== null ? ` = ${money(item.subtotal)}` : ""}`),
-    "",
-    knownTotal ? `Total orientativo: ${money(knownTotal)}${hasUnknown ? " + productos a consultar" : ""}` : "Precio final a confirmar.",
-    "¿Me confirmás disponibilidad, total final, forma de pago y entrega?",
-  ].join("\n");
-
-  return (
-    <div className="drawer-shell" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <aside className="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-title">
-        <div className="drawer-head"><div><p className="eyebrow">Consulta preparada</p><h2 id="cart-title">Tu pedido</h2></div><button className="modal-close" type="button" onClick={onClose}>×</button></div>
-        <div className="drawer-body">
-          {!lines.length ? <div className="empty-cart"><span>◇</span><h3>Tu lista está vacía</h3><p>Elegí una presentación de cada perfume y agregala para preparar un único mensaje de WhatsApp.</p></div> : lines.map((item) => (
-            <article className="cart-line" key={`${item.slug}-${item.size}`}>
-              {(item.product?.image || item.product?.imageData) && <img src={imageSrc(item.product)} alt="" />}
-              <div><strong>{item.product?.name}</strong><span>{item.size} · {item.price}</span><div className="qty"><button onClick={() => onQty(item, -1)} type="button">−</button><span>{item.qty}</span><button onClick={() => onQty(item, 1)} type="button">+</button></div></div>
-              <button className="remove-line" type="button" onClick={() => onRemove(item)}>×</button>
-            </article>
-          ))}
-        </div>
-        {lines.length > 0 && <div className="drawer-footer">
-          <div className="cart-total"><span>Total orientativo</span><strong>{knownTotal ? money(knownTotal) : "A consultar"}</strong></div>
-          {hasUnknown && <p className="microcopy">Hay productos cuyo precio se confirma por WhatsApp.</p>}
-          <a className="button button--wide" href={whatsappUrl(message)} target="_blank" rel="noopener noreferrer">Enviar pedido por WhatsApp</a>
-          <button className="text-button" type="button" onClick={onClear}>Vaciar lista</button>
-        </div>}
-      </aside>
     </div>
   );
 }
@@ -312,25 +259,20 @@ function PolicyModal({ policy, onClose }) {
 }
 
 export default function Storefront({ initialProducts, page = "home" }) {
-  const [storageReady, setStorageReady] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("Todos");
   const [brand, setBrand] = useState("Todas");
   const [profile, setProfile] = useState("Todos");
   const [priceRange, setPriceRange] = useState("Todos");
   const [sort, setSort] = useState("recomendados");
-  const [cart, setCart] = useState([]);
   const [compare, setCompare] = useState([]);
   const [quickView, setQuickView] = useState(null);
-  const [cartOpen, setCartOpen] = useState(false);
   const [compareOpen, setCompareOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [policyKey, setPolicyKey] = useState(null);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-    setCart(readStorage(CART_KEY, []));
-    setStorageReady(true);
     if (!("IntersectionObserver" in window)) {
       document.querySelectorAll(".reveal").forEach((node) => node.classList.add("is-visible"));
       return;
@@ -343,7 +285,6 @@ export default function Storefront({ initialProducts, page = "home" }) {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => { if (storageReady) localStorage.setItem(CART_KEY, JSON.stringify(cart)); }, [cart, storageReady]);
   useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(""), 2200); return () => clearTimeout(id); }, [toast]);
 
   const products = useMemo(() => initialProducts, [initialProducts]);
@@ -371,19 +312,6 @@ export default function Storefront({ initialProducts, page = "home" }) {
     });
   }, [perfumeProducts, query, category, brand, profile, priceRange, sort]);
 
-  function addToCart(product, variant) {
-    if (!variant || product.availability === "Sin stock") { setToast("Este producto figura sin stock"); return; }
-    const key = `${product.slug}:${variant.size}`;
-    setCart((current) => {
-      const found = current.find((item) => `${item.slug}:${item.size}` === key);
-      if (found) return current.map((item) => `${item.slug}:${item.size}` === key ? { ...item, qty: item.qty + 1 } : item);
-      return [...current, { slug: product.slug, size: variant.size, price: variant.price, qty: 1 }];
-    });
-    setToast(`${product.name} agregado a tu pedido`);
-  }
-
-  function removeCart(item) { setCart((current) => current.filter((line) => !(line.slug === item.slug && line.size === item.size))); }
-  function changeQty(item, delta) { setCart((current) => current.map((line) => line.slug === item.slug && line.size === item.size ? { ...line, qty: Math.max(1, line.qty + delta) } : line)); }
   function toggleCompare(slug) {
     setCompare((current) => {
       if (current.includes(slug)) return current.filter((item) => item !== slug);
@@ -393,7 +321,6 @@ export default function Storefront({ initialProducts, page = "home" }) {
   }
   function resetFilters() { setQuery(""); setCategory("Todos"); setBrand("Todas"); setProfile("Todos"); setPriceRange("Todos"); setSort("recomendados"); }
 
-  const cartCount = cart.reduce((sum, item) => sum + item.qty, 0);
   const activePolicy = policyKey ? POLICIES[policyKey] : null;
 
   const navItems = [
@@ -408,7 +335,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
     catalog: ["Catálogo", "Encontrá una fragancia para vos.", "Buscá por nombre o marca, filtrá por género, perfil y precio, y elegí la presentación antes de consultar."],
     combos: ["Combos", "Armá tu combo de decants.", "Elegí las fragancias que quieras y prepará una consulta de combo sin recorrer toda la tienda."],
     advisor: ["Asesor", "Te ayudamos a elegir.", "Contanos qué buscás y te mostramos tres opciones del catálogo para empezar."],
-    how: ["Cómo comprar", "Simple, directo y por WhatsApp.", "Explorá, armá tu pedido y coordiná disponibilidad, pago y entrega por chat."],
+    how: ["Cómo comprar", "Simple, directo y por WhatsApp.", "Explorá, elegí una presentación y coordiná disponibilidad, pago y entrega por WhatsApp."],
   };
 
   function CatalogSection() {
@@ -434,7 +361,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
             <label>Precio<select value={priceRange} onChange={(e) => setPriceRange(e.target.value)}><option value="Todos">Todos</option><option value="8000">Hasta $8.000</option><option value="12000">Hasta $12.000</option><option value="18000">Hasta $18.000</option><option value="25000">Hasta $25.000</option></select></label>
             <button type="button" className="clear-filters" onClick={resetFilters}>Limpiar filtros</button>
           </div>
-          {visibleProducts.length ? <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.slug} product={product} onQuickView={setQuickView} onAdd={addToCart} compareSelected={compare.includes(product.slug)} onCompare={toggleCompare} />)}</div> : <div className="empty-state"><h3>No encontramos coincidencias.</h3><p>Probá quitar algún filtro o buscar otra marca.</p><button type="button" className="button button--ghost" onClick={resetFilters}>Ver todo</button></div>}
+          {visibleProducts.length ? <div className="product-grid">{visibleProducts.map((product) => <ProductCard key={product.slug} product={product} onQuickView={setQuickView} compareSelected={compare.includes(product.slug)} onCompare={toggleCompare} />)}</div> : <div className="empty-state"><h3>No encontramos coincidencias.</h3><p>Probá quitar algún filtro o buscar otra marca.</p><button type="button" className="button button--ghost" onClick={resetFilters}>Ver todo</button></div>}
         </div>
       </section>
     );
@@ -450,7 +377,6 @@ export default function Storefront({ initialProducts, page = "home" }) {
           <nav className={`nav-links${menuOpen ? " is-open" : ""}`}>
             {navItems.map(([key, href, label]) => <Link key={key} className={page === key ? "is-current" : ""} href={href} onClick={() => setMenuOpen(false)}>{label}</Link>)}
           </nav>
-          <div className="header-actions"><button className="header-cart" type="button" onClick={() => setCartOpen(true)}><Icon>◇</Icon><span>Mi pedido</span><b>{cartCount}</b></button></div>
         </div>
       </header>
 
@@ -458,7 +384,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
         {page === "home" && <>
           <section className="hero" id="inicio">
             <div className="container hero-grid">
-              <div className="hero-copy-wrap"><p className="eyebrow">Perfumería original · Decants seleccionados</p><h1>Probá tu próxima <em>esencia</em> antes del frasco completo.</h1><p className="hero-copy">La web está dividida por secciones para que desde el celular llegues rápido a lo que buscás: catálogo, combos, asesor y cómo comprar.</p><div className="hero-price-chip">Decants disponibles <strong>desde $6.000</strong></div><div className="hero-actions"><Link className="button" href="/catalogo">Explorar catálogo</Link><Link className="button button--ghost" href="/asesor">Ayudame a elegir</Link></div><div className="hero-notes"><span>Fotos reales</span><span>Pedido simple</span><span>Atención personal</span></div></div>
+              <div className="hero-copy-wrap"><p className="eyebrow">Perfumería original · Decants seleccionados</p><h1>Probá tu próxima <em>esencia</em> antes del frasco completo.</h1><p className="hero-copy">La web está dividida por secciones para que desde el celular llegues rápido a lo que buscás: catálogo, combos, asesor y cómo comprar.</p><div className="hero-price-chip">Decants disponibles <strong>desde $6.000</strong></div><div className="hero-actions"><Link className="button" href="/catalogo">Explorar catálogo</Link><Link className="button button--ghost" href="/asesor">Ayudame a elegir</Link></div><div className="hero-notes"><span>Fotos reales</span><span>Compra simple</span><span>Atención personal</span></div></div>
               <div className="hero-showcase"><div className="hero-orbit"></div><figure className="hero-main-product"><img src="/images/capture_260709_225759.png" alt="Khamrah de Lattafa" /><figcaption><small>Unisex</small><strong>Khamrah</strong><span>Desde $7.500</span></figcaption></figure><figure className="hero-side-product"><img src="/images/capture_260709_230317(1).png" alt="Yara de Lattafa" /></figure><div className="hero-seal">Fragancias seleccionadas</div></div>
             </div>
           </section>
@@ -469,7 +395,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
                 <Link href="/catalogo"><span>01</span><strong>Catálogo</strong><p>Buscar, filtrar, comparar y elegir decants.</p><em>/catalogo →</em></Link>
                 <Link href="/combos"><span>02</span><strong>Combos</strong><p>Armá una selección de hasta 3 fragancias.</p><em>/combos →</em></Link>
                 <Link href="/asesor"><span>03</span><strong>Asesor</strong><p>Recibí 3 sugerencias según lo que buscás.</p><em>/asesor →</em></Link>
-                <Link href="/como-comprar"><span>04</span><strong>Cómo comprar</strong><p>Revisá el paso a paso antes de hacer tu pedido.</p><em>/como-comprar →</em></Link>
+                <Link href="/como-comprar"><span>04</span><strong>Cómo comprar</strong><p>Revisá el paso a paso antes de escribir por WhatsApp.</p><em>/como-comprar →</em></Link>
               </div>
             </div>
           </section>
@@ -478,7 +404,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
             <div className="container"><div className="section-head-row"><div><p className="eyebrow">Para empezar</p><h2 className="section-title">Selección destacada.</h2><p className="section-copy">Algunas opciones para entrar rápido a una ficha o abrir la vista rápida.</p></div><Link href="/catalogo" className="text-link">Ver todo el catálogo →</Link></div><div className="featured-row">{featured.map((product) => <button key={product.slug} type="button" className="featured-card" onClick={() => setQuickView(product)}><img src={imageSrc(product)} alt={product.name} /><span><small>{product.brand} · {product.category}</small><strong>{product.name}</strong><em>Desde {product.price}</em></span></button>)}</div></div>
           </section>
 
-          <section className="service-info reveal"><div className="container"><div className="service-grid"><article><span>01</span><h3>Elegí tranquilo</h3><p>Compará perfumes, tamaños y precios dentro del catálogo.</p></article><article><span>02</span><h3>Armá tu pedido</h3><p>Podés sumar varios decants y enviarlos juntos por WhatsApp.</p></article><article><span>03</span><h3>Entrega coordinada</h3><p>Disponibilidad, pago y entrega se confirman directamente por chat.</p></article><article><span>04</span><h3>Desde el celular</h3><p>La navegación inferior deja inicio, catálogo, combos, asesor y cómo comprar siempre a mano.</p></article></div></div></section>
+          <section className="service-info reveal"><div className="container"><div className="service-grid"><article><span>01</span><h3>Elegí tranquilo</h3><p>Compará perfumes, tamaños y precios dentro del catálogo.</p></article><article><span>02</span><h3>Elegí el tamaño</h3><p>Seleccioná 5 o 10 ml y abrí WhatsApp con el perfume ya cargado.</p></article><article><span>03</span><h3>Entrega coordinada</h3><p>Disponibilidad, pago y entrega se confirman directamente por chat.</p></article><article><span>04</span><h3>Desde el celular</h3><p>La navegación inferior deja inicio, catálogo, combos, asesor y cómo comprar siempre a mano.</p></article></div></div></section>
 
           <InstagramSection products={products} />
           <section className="closing"><div className="container closing-inner"><div><p className="eyebrow eyebrow--dark">Asesoramiento personal</p><h2>¿No sabés con cuál arrancar?</h2></div><Link className="button" href="/asesor">Usar el asesor</Link></div></section>
@@ -490,7 +416,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
         {page === "combos" && <ComboBuilder products={products} />}
         {page === "advisor" && <Finder products={products} onQuickView={setQuickView} />}
         {page === "how" && <>
-          <section className="how route-how"><div className="container"><p className="eyebrow">Paso a paso</p><h2 className="section-title">Cómo comprar</h2><div className="steps"><article className="step"><span className="step-number">01</span><h3>Explorá</h3><p>Entrá a /catalogo, buscá y filtrá entre hombre, mujer y unisex.</p></article><article className="step"><span className="step-number">02</span><h3>Armá tu pedido</h3><p>Elegí 5 o 10 ml y agregá todos los decants que quieras.</p></article><article className="step"><span className="step-number">03</span><h3>Coordinamos</h3><p>Mandá el pedido por WhatsApp y confirmamos stock, pago y entrega.</p></article></div></div></section>
+          <section className="how route-how"><div className="container"><p className="eyebrow">Paso a paso</p><h2 className="section-title">Cómo comprar</h2><div className="steps"><article className="step"><span className="step-number">01</span><h3>Explorá</h3><p>Entrá a /catalogo, buscá y filtrá entre hombre, mujer y unisex.</p></article><article className="step"><span className="step-number">02</span><h3>Elegí el tamaño</h3><p>Seleccioná 5 o 10 ml en el perfume que te interesa.</p></article><article className="step"><span className="step-number">03</span><h3>Escribinos</h3><p>Tocá “Pedir por WhatsApp” y confirmamos stock, pago y entrega.</p></article></div></div></section>
           <section className="service-info"><div className="container"><div className="service-grid"><article><span>01</span><h3>Precios claros</h3><p>Ves el valor de cada presentación antes de consultar.</p></article><article><span>02</span><h3>Sin checkout</h3><p>No tenés que registrarte ni completar formularios largos.</p></article><article><span>03</span><h3>Atención humana</h3><p>La compra se termina directamente por WhatsApp.</p></article><article><span>04</span><h3>Combos aparte</h3><p>Los combos tienen su propia sección para no mezclar todo en el catálogo.</p></article></div></div></section>
         </>}
       </main>
@@ -501,15 +427,13 @@ export default function Storefront({ initialProducts, page = "home" }) {
         {navItems.map(([key, href, label]) => <Link key={key} className={page === key ? "is-current" : ""} href={href}><span aria-hidden="true">{key === "home" ? "⌂" : key === "catalog" ? "⌕" : key === "combos" ? "◇" : key === "advisor" ? "✦" : "✓"}</span><small>{label}</small></Link>)}
       </nav>
 
-      <button className="order-float" type="button" onClick={() => setCartOpen(true)} aria-label={`Abrir mi pedido${cartCount ? `, ${cartCount} productos` : ""}`}><span>◇</span>{cartCount > 0 && <b>{cartCount}</b>}</button>
       <a className="whatsapp-float" href={whatsappUrl("Hola! Quiero consultar por los perfumes disponibles.")} target="_blank" rel="noopener noreferrer" aria-label="Consultar por WhatsApp">
         <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M19.11 17.21c-.26-.13-1.53-.75-1.77-.84-.24-.09-.41-.13-.59.13-.17.26-.67.84-.82 1.01-.15.17-.3.19-.56.06-.26-.13-1.09-.4-2.08-1.28-.77-.69-1.29-1.54-1.44-1.8-.15-.26-.02-.4.11-.53.12-.12.26-.3.39-.45.13-.15.17-.26.26-.43.09-.17.04-.32-.02-.45-.06-.13-.59-1.42-.8-1.95-.21-.51-.43-.44-.59-.45h-.5c-.17 0-.45.06-.69.32-.24.26-.91.88-.91 2.15 0 1.27.93 2.5 1.06 2.67.13.17 1.83 2.79 4.43 3.91.62.27 1.1.43 1.48.55.62.2 1.19.17 1.64.1.5-.07 1.53-.63 1.75-1.23.22-.6.22-1.12.15-1.23-.06-.11-.24-.17-.5-.3M16.05 26.4h-.01a10.35 10.35 0 0 1-5.28-1.45l-.38-.23-3.93 1.03 1.05-3.83-.25-.39a10.33 10.33 0 1 1 8.8 4.87m8.8-19.21A12.36 12.36 0 0 0 5.4 22.51L3.65 28.9l6.54-1.72a12.35 12.35 0 1 0 14.66-19.98"/></svg>
       </a>
 
       {compare.length > 0 && <div className="compare-bar"><span><strong>{compare.length}</strong> {compare.length === 1 ? "perfume" : "perfumes"} para comparar</span><div><button type="button" onClick={() => setCompare([])}>Limpiar</button><button type="button" className="button" onClick={() => setCompareOpen(true)} disabled={compare.length < 2}>Comparar ahora</button></div></div>}
       {toast && <div className="toast" role="status">{toast}</div>}
-      {quickView && <ProductModal product={productsBySlug[quickView.slug] || quickView} onClose={() => setQuickView(null)} onAdd={addToCart} />}
-      {cartOpen && <CartDrawer cart={cart} productsBySlug={productsBySlug} onClose={() => setCartOpen(false)} onRemove={removeCart} onQty={changeQty} onClear={() => setCart([])} />}
+      {quickView && <ProductModal product={productsBySlug[quickView.slug] || quickView} onClose={() => setQuickView(null)} />}
       {compareOpen && <CompareModal slugs={compare} productsBySlug={productsBySlug} onClose={() => setCompareOpen(false)} onRemove={toggleCompare} />}
       {activePolicy && <PolicyModal policy={activePolicy} onClose={() => setPolicyKey(null)} />}
     </>
