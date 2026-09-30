@@ -37,7 +37,7 @@ export default function ProductDetailClient({ product, related }) {
       <header className="detail-header"><div className="container"><Link className="brand" href="/"><img className="brand-logo" src="/images/logo-lukaperfum.png" alt="Lukaperfum" /><span className="brand-name">Lukaperfum</span></Link><Link className="detail-back" href="/catalogo">← Volver al catálogo</Link></div></header>
       <main>
         <section className="product-detail"><div className="container product-detail-grid">
-          <div className="detail-gallery"><button type="button" className={`detail-gallery-main${zoom ? " is-zoomed" : ""}`} onClick={() => setZoom(!zoom)} aria-label="Ampliar imagen">{product.image ? <img src={`/images/${product.image}`} alt={`${product.name} de ${product.brand}`} /> : <div className="product-placeholder">Combo personalizable</div>}</button><p className="microcopy">Tocá la foto para {zoom ? "reducir" : "ampliar"}.</p></div>
+          <div className="detail-gallery"><button type="button" className={`detail-gallery-main${zoom ? " is-zoomed" : ""}`} onClick={() => setZoom(!zoom)} aria-label="Ampliar imagen">{product.image ? <img src={`/images/${product.image}`} alt={`${product.name} de ${product.brand}`} /> : <div className="product-placeholder">{product.category === "Combos" ? "Combo personalizable" : product.name}</div>}</button><p className="microcopy">Tocá la foto para {zoom ? "reducir" : "ampliar"}.</p></div>
           <div className="detail-copy">
             <p className="eyebrow">{product.brand} · {product.category}</p>
             <h1>{product.name}</h1>

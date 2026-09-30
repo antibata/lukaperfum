@@ -81,7 +81,7 @@ function ProductCard({ product, onQuickView, compareSelected, onCompare }) {
     <article className="product-card product-card-enter">
       <div className="product-media-wrap">
         <button type="button" className="product-media" onClick={() => onQuickView(product)} aria-label={`Ver foto y detalle de ${product.name}`}>
-          {(product.image || product.imageData) ? <img src={imageSrc(product)} alt={`${product.name} de ${product.brand}`} loading="lazy" /> : <div className="product-placeholder"><span>Armá tu combo</span></div>}
+          {(product.image || product.imageData) ? <img src={imageSrc(product)} alt={`${product.name} de ${product.brand}`} loading="lazy" /> : <div className="product-placeholder"><span>{product.category === "Combos" ? "Armá tu combo" : product.name}</span></div>}
         </button>
         <div className="product-badges">
           <span className="product-category">{product.category}</span>
@@ -131,7 +131,7 @@ function ProductModal({ product, onClose }) {
         <button className="modal-close floating-close" type="button" onClick={onClose} aria-label="Cerrar">×</button>
         <div className="product-modal-grid">
           <button type="button" className={`modal-product-image${zoom ? " is-zoomed" : ""}`} onClick={() => setZoom(!zoom)} aria-label="Ampliar o reducir imagen">
-            {(product.image || product.imageData) ? <img src={imageSrc(product)} alt={product.name} /> : <div className="product-placeholder"><span>Combo personalizable</span></div>}
+            {(product.image || product.imageData) ? <img src={imageSrc(product)} alt={product.name} /> : <div className="product-placeholder"><span>{product.category === "Combos" ? "Combo personalizable" : product.name}</span></div>}
             {(product.image || product.imageData) && <span className="zoom-hint">{zoom ? "Reducir" : "Ampliar foto"}</span>}
           </button>
           <div className="product-modal-copy">
@@ -384,7 +384,7 @@ export default function Storefront({ initialProducts, page = "home" }) {
         {page === "home" && <>
           <section className="hero" id="inicio">
             <div className="container hero-grid">
-              <div className="hero-copy-wrap"><p className="eyebrow">Perfumería original · Decants seleccionados</p><h1>Probá tu próxima <em>esencia</em> antes del frasco completo.</h1><p className="hero-copy">La web está dividida por secciones para que desde el celular llegues rápido a lo que buscás: catálogo, combos, asesor y cómo comprar.</p><div className="hero-price-chip">Decants disponibles <strong>desde $6.000</strong></div><div className="hero-actions"><Link className="button" href="/catalogo">Explorar catálogo</Link><Link className="button button--ghost" href="/asesor">Ayudame a elegir</Link></div><div className="hero-notes"><span>Fotos reales</span><span>Compra simple</span><span>Atención personal</span></div></div>
+              <div className="hero-copy-wrap"><p className="eyebrow">Perfumería original · Decants seleccionados</p><h1>Probá tu próxima <em>esencia</em> antes del frasco completo.</h1><p className="hero-copy">La web está dividida por secciones para que desde el celular llegues rápido a lo que buscás: catálogo, combos, asesor y cómo comprar.</p><div className="hero-price-chip">Decants disponibles <strong>desde $5.000</strong></div><div className="hero-actions"><Link className="button" href="/catalogo">Explorar catálogo</Link><Link className="button button--ghost" href="/asesor">Ayudame a elegir</Link></div><div className="hero-notes"><span>Fotos reales</span><span>Compra simple</span><span>Atención personal</span></div></div>
               <div className="hero-showcase"><div className="hero-orbit"></div><figure className="hero-main-product"><img src="/images/capture_260709_225759.png" alt="Khamrah de Lattafa" /><figcaption><small>Hombre</small><strong>Khamrah</strong><span>Desde $7.500</span></figcaption></figure><figure className="hero-side-product"><img src="/images/capture_260709_230317(1).png" alt="Yara de Lattafa" /></figure><div className="hero-seal">Fragancias seleccionadas</div></div>
             </div>
           </section>
